@@ -20,24 +20,25 @@ func help(exit bool) {
 
 func main() {
 
-	//status := search.GetValueFromKey(buff, "status=", " ")
-	scanner := bufio.NewScanner(os.Stdin)
 	var buffer string
-	//buffer := scanner.Text()
-	//fmt.Println(buffer) // Println will add back the final '\n'
 
+	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		buffer = scanner.Text()
 		//fmt.Println(buffer) // Println will add back the final '\n'
 	}
 	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+		fmt.Fprintln(os.Stderr, "sin datos en stdin!!", err)
 	}
 
-	//fmt.Println(buffer)
+	//buffer = "timeFake=\"yo\" time=\"2024-04-05 11:39:27.864\" level=INFO module=helpers head_rest=\"User-Agent:[Mozilla/4.0 [en] (WinNT; I)] X-Forwarded-For:[76.249.26.144, 172.29.99.68, 172.29.98.125, 10.131.0.1] X-Forwarded-Port:[443]\""
 
 	key := os.Args[1]
 
-	valor := search.GetValueFromKeyWithDelimiters(buffer, key, "[", "]", true)
-	fmt.Println(valor)
+	valor, err := search.GetSmartValue(buffer, key)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Printf("%s => %s", key, valor)
+	}
 }

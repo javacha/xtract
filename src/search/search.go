@@ -3,6 +3,7 @@ package search
 import (
 	"fmt"
 	"strings"
+	"tools/src/valueExtractor"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////
@@ -57,47 +58,53 @@ func GetValueFromKeyWithDelimiters(buff, key, startDeliminter string, endDelimin
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= //
 
-func extractKeyAndRemainderBuffer(buff, key string) (string, string) {
-	inicioKey := strings.Index(buff, key)
-	longitudKey := len(key)
-	restoBuff := buff[inicioKey+longitudKey:]
-
-	primerCaracterResto := restoBuff[1:]
-	if charIsKeySeparator(primerCaracterResto) {
-
+func GetSmartValue(buff, key string) (string, error) {
+	restoBuff, err := locateValueBuffer(buff, key)
+	if err != nil {
+		return "", err
 	}
 
-	return "a", "b"
-}
-
-func GetValue(buff, key string) string {
-	inicioKey := strings.Index(buff, key)
-	longitudKey := len(key)
-	restoBuff := buff[inicioKey+longitudKey:]
-	posIniValor := strings.Index(restoBuff, startDeliminter) + 1
-	posFinValor := strings.Index(restoBuff, endDeliminter)
-	if printDelimiters {
-		posIniValor--
-		posFinValor++
+	primerCaracterEsDelimitador := restoBuff[:1]
+	if !valueExtractor.CharIsValueDelimiter(primerCaracterEsDelimitador) {
+		valueExtractor.SetDelimiter(" ")
+	} else {
+		valueExtractor.SetDelimiter(primerCaracterEsDelimitador)
 	}
-	return strings.Trim(restoBuff[posIniValor:posFinValor], " ")
-}
 
-func Tester() {
-	fmt.Println(nextCharIs(":[172.29.99.68] Content-Type:[application/x-www-form-urlencoded]"))
-}
-
-func nextCharIs(buff string) bool {
-	siguiente := buff[:1]
-	return charIsKeySeparator(siguiente)
-}
-
-func charIsKeySeparator(char string) bool {
-	var keySeparators = [2]string{":", "="}
-	for _, n := range keySeparators {
-		if char == n {
-			return true
+	idx := 1
+	stillInValue := true
+	for stillInValue {
+		if valueExtractor.IsEndDelimiter(string(restoBuff[idx])) {
+			break
+		} else {
+			idx++
 		}
 	}
-	return false
+	value := restoBuff[0 : idx+1]
+	return value, nil
+
+}
+
+// devuelve el buffer restante luego de ubicar la key y quitarla
+// ejemplo
+//
+//	param 1   time="2024-04-05 11:39:27.864" level=INFO module=helpers....
+//	param 2   time
+//
+// retorna
+//
+//	"2024-04-05 11:39:27.864" level=INFO module=helpers,
+func locateValueBuffer(buff, key string) (string, error) {
+	inicioKey := strings.Index(buff, key)
+	if inicioKey < 0 {
+		return "", fmt.Errorf("key %s no existe", key)
+	}
+	longitudKey := len(key)
+	restoBuff := buff[inicioKey+longitudKey:]
+
+	primerCaracterResto := restoBuff[:1]
+	if !valueExtractor.CharIsKeySeparator(primerCaracterResto) {
+		return locateValueBuffer(restoBuff, key)
+	}
+	return restoBuff[1:], nil
 }
