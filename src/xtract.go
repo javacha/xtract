@@ -38,7 +38,9 @@ func main() {
 	valor, err := search.GetSmartValue(buffer, key)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	} else {
-		fmt.Printf("%s => %s", key, valor)
+		fmt.Printf("%s => %s\n", key, valor)
 	}
+
 }
