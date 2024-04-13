@@ -5,7 +5,13 @@ import (
 	"fmt"
 	"os"
 	"tools/src/search"
+
+	"github.com/jessevdk/go-flags"
 )
+
+type Options struct {
+	Color bool `short:"c" long:"color" description:"Colour key and value"`
+}
 
 /*
 func help(exit bool) {
@@ -34,6 +40,14 @@ func main() {
 	//buffer = "timeFake=\"yo\" time=\"2024-04-05 11:39:27.864\" level=INFO module=helpers head_rest=\"User-Agent:[Mozilla/4.0 [en] (WinNT; I)] X-Forwarded-For:[76.249.26.144, 172.29.99.68, 172.29.98.125, 10.131.0.1] X-Forwarded-Port:[443]\""
 
 	key := os.Args[1]
+
+	var opts Options
+	_, err := flags.Parse(&opts)
+	if err != nil {
+		// Handle error
+		fmt.Println(err)
+		return
+	}
 
 	valor, err := search.GetSmartValue(buffer, key)
 	if err != nil {
